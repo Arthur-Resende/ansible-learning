@@ -1,0 +1,35 @@
+---
+- name: Ensure OpenRC
+  hosts: managed_nodes_dev
+  become: yes
+  tasks:
+    - name: Install OpenRC
+      apk:
+        name: openrc
+        state: present
+
+    - name: Ensure /run/openrc directory exists
+      file:
+        path: /run/openrc
+        state: directory
+        mode: '0755'
+
+    - name: Ensure /run/openrc/softlevel exists
+      file:
+        path: /run/openrc/softlevel
+        state: touch
+        mode: '0644'
+
+    - name: Initialize OpenRC if needed
+      command: openrc
+      args:
+        creates: /run/openrc/softlevel
+
+    - name: Check OpenRC status
+      command: rc-status
+      register: openrc_status
+      changed_when: false
+
+    - name: Display OpenRC status
+      debug:
+        msg: "{{ openrc_status.stdout }}"
