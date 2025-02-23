@@ -9,6 +9,9 @@ networks:
 
 services:
   ansible-control:
+    depends_on:
+      - ansible-node1
+      - ansible-node2
     build:
       context: .
       dockerfile: ControlDockerfile
@@ -23,6 +26,13 @@ services:
         ipv4_address: 172.20.0.2
         aliases:
           - ansible-control
+    command: >
+      /bin/sh -c '
+      apk update &&
+      apk add --no-cache sshpass &&
+      su - ansible -c "sshpass -p \"ansible\" ssh-copy-id -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa.pub ansible@172.20.0.3" &&
+      su - ansible -c "sshpass -p \"ansible\" ssh-copy-id -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa.pub ansible@172.20.0.4" &&
+      /usr/sbin/sshd -D'
 
   ansible-node1:
     build:
