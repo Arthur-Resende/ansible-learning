@@ -1,0 +1,51 @@
+networks:
+  ansible-net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+
+services:
+  ansible-control:
+    image: alpine:3.19
+    ports:
+      - 2201:22
+      - 8001:80
+      - 1443:443
+    volumes:
+      - ./:/ansible
+    networks:
+      ansible-net:
+        ipv4_address: 172.20.0.2
+        aliases:
+          - ansible-control
+
+  ansible-node1:
+    build:
+      context: .
+      dockerfile: ManagedDockerfile
+    ports:
+      - 2202:22
+      - 8002:80
+      - 2443:443
+    networks:
+      ansible-net:
+        ipv4_address: 172.20.0.3
+        aliases:
+          - ansible-node1
+
+  ansible-node2:
+    build:
+      context: .
+      dockerfile: ManagedDockerfile
+    ports:
+      - 2203:22
+      - 8003:80
+      - 3443:443
+    networks:
+      ansible-net:
+        ipv4_address: 172.20.0.4
+        aliases:
+          - ansible-node2

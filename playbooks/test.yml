@@ -1,0 +1,21 @@
+---
+- name: Test Ansible connectivity and setup
+  hosts: managed_nodes
+  gather_facts: yes
+  
+  tasks:
+    - name: Get hostname
+      command: hostname
+      register: hostname_output
+      
+    - name: Display hostname
+      debug:
+        msg: "Running on host: {{ hostname_output.stdout }}"
+        
+    - name: Check Python version
+      command: python3 --version
+      register: python_version
+      
+    - name: Display Python version
+      debug:
+        msg: "Python version: {{ python_version.stdout }}"
