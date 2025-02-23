@@ -54,6 +54,9 @@ ansible-docker-project/
 │   ├── deploy_website.yml
 │   ├── manage_memory.yml
 │   ├── manage_cpu.yml
+│── inventories
+│   │── inventory.yaml
+|   │── inventory.ini
 │── static-site/
 │── README.md
 ```
