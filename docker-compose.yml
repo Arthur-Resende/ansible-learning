@@ -9,7 +9,9 @@ networks:
 
 services:
   ansible-control:
-    image: alpine:3.19
+    build:
+      context: .
+      dockerfile: ControlDockerfile
     ports:
       - 2201:22
       - 8001:80

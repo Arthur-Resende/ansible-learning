@@ -1,0 +1,26 @@
+FROM alpine:3.19
+
+# Install required packages
+RUN apk update && \
+    apk add --no-cache openssh-server openssh-client python3 ansible
+
+# Create ansible user
+RUN adduser -h /home/ansible -D ansible && \
+    echo ansible:ansible | chpasswd
+
+# Create SSH directory and set permissions
+RUN mkdir /home/ansible/.ssh && \
+    chown ansible:ansible /home/ansible/.ssh && \
+    chmod 700 /home/ansible/.ssh
+
+# Create ssh key
+RUN su - ansible -c 'ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""'
+
+# Expose SSH port
+EXPOSE 22
+
+# Create Host keys
+RUN ssh-keygen -A
+
+# Start SSH service
+CMD ["/usr/sbin/sshd", "-D"]
