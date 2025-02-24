@@ -1,6 +1,6 @@
 ---
 - name: Ensure OpenRC
-  hosts: managed_nodes_dev
+  hosts: managed_nodes
   become: yes
   tasks:
     - name: Install OpenRC

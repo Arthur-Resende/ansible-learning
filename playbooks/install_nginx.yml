@@ -2,7 +2,7 @@
 - import_playbook: ensure_openrc.yml
     
 - name: Install and configure Nginx
-  hosts: managed_nodes_dev
+  hosts: managed_nodes
   become: yes
   tasks:
     - name: Install nginx package

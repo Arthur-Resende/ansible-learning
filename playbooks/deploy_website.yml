@@ -2,7 +2,7 @@
 - import_playbook: install_nginx.yml
 
 - name: Deploy static webpage
-  hosts: managed_nodes_dev
+  hosts: managed_nodes
   become: true
   tasks:
     - name: Creating folder for webpage

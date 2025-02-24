@@ -20,18 +20,24 @@ services:
       - 8001:80
       - 1443:443
     volumes:
-      - ./:/ansible
+      - ./:/home/ansible/ansible
     networks:
       ansible-net:
         ipv4_address: 172.20.0.2
         aliases:
           - ansible-control
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '1.00'
     command: >
       /bin/sh -c '
       apk update &&
       apk add --no-cache sshpass &&
       su - ansible -c "sshpass -p \"ansible\" ssh-copy-id -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa.pub ansible@172.20.0.3" &&
       su - ansible -c "sshpass -p \"ansible\" ssh-copy-id -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa.pub ansible@172.20.0.4" &&
+      cp /home/ansible/ansible/ansible.cfg /home/ansible/ansible.cfg &&
       /usr/sbin/sshd -D'
 
   ansible-node1:
@@ -47,6 +53,11 @@ services:
         ipv4_address: 172.20.0.3
         aliases:
           - ansible-node1
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
 
   ansible-node2:
     build:
@@ -61,3 +72,8 @@ services:
         ipv4_address: 172.20.0.4
         aliases:
           - ansible-node2
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.50'
