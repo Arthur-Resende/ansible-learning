@@ -1,0 +1,33 @@
+---
+- name: Create folder for webpage
+  file:
+    path: "{{ webpage_location }}"
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+
+- name: Gather the package facts
+  package_facts:
+    manager: apk
+  when: ansible_facts.packages | length == 0
+
+- name: Ensure unzip
+  apk:
+    name: unzip
+    state: present
+    update_cache: yes
+  when: "'unzip' not in ansible_facts.packages"
+
+- name: Extracting webpage
+  unarchive:
+    src: "{{ temp_dir + '/main.zip' }}"
+    dest: /var/www/custom-webpage/
+    remote_src: yes
+    owner: nginx
+    group: nginx
+
+- name: Removing temporary zip file
+  file:
+    path: "{{ temp_dir + '/main.zip' }}"
+    state: absent

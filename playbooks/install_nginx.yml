@@ -1,5 +1,5 @@
 ---
-- import_playbook: ensure_openrc.yml
+# - import_playbook: ensure_openrc.yml
     
 - name: Install and configure Nginx
   hosts: managed_nodes
@@ -10,6 +10,15 @@
         name: nginx
         state: present
         update_cache: yes
+
+    - name: Check if Nginx is running
+      shell: ps -eo pid,comm | grep '[n]ginx'
+      register: ps_result
+      failed_when: ps_result.rc > 1  # Allow exit code 1 (not found)
+
+    - name: Kill nginx process
+      command: pkill nginx
+      when: ps_result.stdout_lines | length > 0
 
     - name: Start and enable nginx service
       service:

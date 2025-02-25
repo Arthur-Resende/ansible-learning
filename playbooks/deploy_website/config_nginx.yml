@@ -1,0 +1,74 @@
+---
+- name: Gather the package facts
+  package_facts:
+    manager: apk
+  when: packages | length == 0
+
+- name: Ensure nginx
+  apk:
+    name: nginx
+    state: present
+    update_cache: yes
+  when: "'nginx' not in packages or 'nginx' not in ansible_facts.packages"
+    
+- name: Ensure Nginx custom-webpage config file
+  file:
+    path: /etc/nginx/conf.d
+    state: directory
+    mode: '0755'
+
+- name: Creating Nginx config file
+  copy:
+    dest: /etc/nginx/nginx.conf
+    content: |
+      user nginx;
+      worker_processes auto;
+
+      error_log /var/log/nginx/error.log warn;
+      pid /var/run/nginx.pid;
+
+      events {
+          worker_connections 1024;
+      }
+
+      http {
+          include       /etc/nginx/mime.types;
+          default_type  application/octet-stream;
+
+          sendfile        on;
+          keepalive_timeout 65;
+
+          # Include all server blocks from conf.d/
+          include /etc/nginx/conf.d/*.conf;
+      }
+  notify: Restart Nginx
+
+- name: Creating Nginx custom-webpage config file
+  copy:
+    dest: /etc/nginx/conf.d/custom-webpage.conf
+    content: |
+      server {
+        listen 80;
+        server_name custom-webpage;
+        root /var/www/custom-webpage/simple-portfolio-template-main/;
+        index index.html;
+      }
+
+- name: Check if Nginx is running
+  shell: ps -eo pid,comm | grep '[n]ginx'
+  register: ps_result
+  failed_when: ps_result.rc > 1  # Allow exit code 1 (not found)
+
+- name: Kill nginx process
+  command: pkill nginx
+  when: ps_result.stdout_lines | length > 0
+
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Enable Nginx on boot
+  service:
+    name: nginx
+    enabled: yes

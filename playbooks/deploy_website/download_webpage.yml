@@ -1,0 +1,11 @@
+---
+- name: Create temporary folder for webpage download
+  file:
+    path: "{{ temp_dir  }}"
+    state: directory
+
+- name: Download webpage
+  get_url:
+    url: "{{ zip_file }}"
+    dest: "{{ temp_dir + '/main.zip' }}"
+    force: yes

@@ -1,104 +1,30 @@
 ---
-- import_playbook: install_nginx.yml
 
 - name: Deploy static webpage
   hosts: managed_nodes
   become: true
+  vars:
+    temp_directory: /tmp
+
   tasks:
-    - name: Creating folder for webpage
-      file:
-        path: /var/www/custom-webpage
-        state: directory
-        owner: nginx
-        group: nginx
-        mode: '0755'
-
-    - name: Creating temporary folder for webpage download
-      file:
-        path: /tmp
-        state: directory
-
-    - name: Download webpage
-      get_url:
-        url: https://github.com/hhlitval/simple-portfolio-template/archive/refs/heads/main.zip
-        dest: /tmp/main.zip
-        force: yes
-
     - name: Gather the package facts
-      ansible.builtin.package_facts:
+      package_facts:
         manager: apk
 
-    - name: Ensure unzip
-      apk:
-        name: unzip
-        state: present
-        update_cache: yes
-      when: "'unzip' not in ansible_facts.packages"
+    - name: Download webpage
+      ansible.builtin.include_tasks: ./deploy_website/download_webpage.yml
+      vars:
+        temp_dir: "{{ temp_directory }}"
+        zip_file: https://github.com/hhlitval/simple-portfolio-template/archive/refs/heads/main.zip
+        
+    - name: Extract webpage
+      ansible.builtin.include_tasks: ./deploy_website/extract_webpage.yml
+      vars:
+        temp_dir: "{{ temp_directory }}"
+        packages: "{{ ansible_facts.packages }}"
+        webpage_location: /var/www/custom-webpage/
 
-    - name: Extracting webpage
-      unarchive:
-        src: /tmp/main.zip
-        dest: /var/www/custom-webpage/
-        remote_src: yes
-        owner: nginx
-        group: nginx
-
-    - name: Removing temporary zip file
-      file:
-        path: /tmp/main.zip
-        state: absent
-
-    - name: Ensure Nginx custom-webpage config file
-      file:
-        path: /etc/nginx/conf.d
-        state: directory
-        mode: '0755'
-
-    - name: Creating Nginx config file
-      copy:
-        dest: /etc/nginx/nginx.conf
-        content: |
-          user nginx;
-          worker_processes auto;
-
-          error_log /var/log/nginx/error.log warn;
-          pid /var/run/nginx.pid;
-
-          events {
-              worker_connections 1024;
-          }
-
-          http {
-              include       /etc/nginx/mime.types;
-              default_type  application/octet-stream;
-
-              sendfile        on;
-              keepalive_timeout 65;
-
-              # Include all server blocks from conf.d/
-              include /etc/nginx/conf.d/*.conf;
-          }
-      notify: Restart Nginx
-
-    - name: Creating Nginx custom-webpage config file
-      copy:
-        dest: /etc/nginx/conf.d/custom-webpage.conf
-        content: |
-          server {
-            listen 80;
-            server_name custom-webpage;
-            root /var/www/custom-webpage/simple-portfolio-template-main/;
-            index index.html;
-          }
-      notify: Restart Nginx
-
-    - name: Enable Nginx on boot
-      service:
-        name: nginx
-        enabled: yes
-
-  handlers:
-    - name: Restart Nginx
-      service:
-        name: nginx
-        state: restarted
+    - name: Set Nginx configuration
+      ansible.builtin.include_tasks: ./deploy_website/config_nginx.yml
+      vars:
+        packages: "{{ ansible_facts.packages }}"
