@@ -27,13 +27,21 @@ cd ansible-docker-project
 docker-compose up -d
 ```
 
-3. **Access the Ansible Control Node:**
+3. **Copy your ssh key to the control node**
 
 ```sh
-docker exec -it ansible_control bash
+# Generate them if necessary
+ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+ssh-copy-id -p 2201 ansible@localhost
 ```
 
-4. **Run Playbooks:**
+4. **Access the Ansible Control Node:**
+
+```sh
+ssh -p 2201 ansible@localhost
+```
+
+5. **Run Playbooks:**
 
 ```sh
 ansible-playbook playbooks/install_nginx.yml
@@ -49,14 +57,18 @@ ansible-docker-project/
 │── docker-compose.yml
 │── inventory.ini
 │── ansible.cfg
+│── inventories/
+│   ├── inventory.ini
+│   ├── inventory.yaml
 │── playbooks/
 │   ├── install_nginx.yml
 │   ├── deploy_website.yml
-│   ├── manage_memory.yml
-│   ├── manage_cpu.yml
+│   ├── deploy_website/
+│   │   ├── config_nginx.yml
+│   │   ├── download_webpage.yml
+│   │   ├── extract_webpage.yml
 │── inventories
 │   │── inventory.yaml
 |   │── inventory.ini
-│── static-site/
 │── README.md
 ```
