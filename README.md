@@ -1,4 +1,4 @@
-# 🛠️ Ansible Learning Project
+# 🛠️ Ansible Learning
 
 ## 📖 Overview
 
